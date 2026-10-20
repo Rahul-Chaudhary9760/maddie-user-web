@@ -9,7 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Maddie Health — Smart Full Body Checkup @ ₹799 | 80+ Tests with Free Home Collection',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://mediehealth.com'),
+  title: 'Medie Health — Smart Full Body Checkup @ ₹799 | 80+ Tests with Free Home Collection',
   description:
     'Book Smart Full Body Checkup online with Free Home Sample Collection. 80+ vital health tests including HbA1c, Thyroid, Lipid, Liver & Kidney profiles. 100% NABL Accredited Lab Reports in 12 hours.',
   keywords: [
@@ -18,14 +19,25 @@ export const metadata: Metadata = {
     'hba1c test free',
     'thyroid profile test',
     'home sample collection',
-    'maddie health labs',
+    'medie health labs',
     'diagnostic lab test near me',
   ],
+  icons: {
+    icon: '/favicon.ico',
+  },
   openGraph: {
-    title: 'Smart Full Body Checkup @ ₹799 (80+ Tests) — Maddie Health',
+    title: 'Smart Full Body Checkup @ ₹799 (80+ Tests) — Medie Health',
     description:
       'Doorstep blood sample collection in 60 mins. Free HbA1c & Doctor Consultation included.',
     type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 778,
+        height: 267,
+        alt: 'Medie Health Logo',
+      },
+    ],
   },
 };
 

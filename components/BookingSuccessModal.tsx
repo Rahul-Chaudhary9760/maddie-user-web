@@ -15,16 +15,14 @@ export function BookingSuccessModal({
   if (!bookingData) return null;
 
   const whatsappMessage = encodeURIComponent(
-    `Hello Maddie Health, I have booked a home collection appointment. My Reference ID is ${bookingData.bookingRef}. Patient: ${bookingData.patientName}.`
+    `Hello Medie Health, I have booked a home collection appointment. My Reference ID is ${bookingData.bookingRef}. Patient: ${bookingData.patientName}.`
   );
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-start">
-          <div className="w-14 h-14 rounded-2xl bg-[#E8FBE9] text-[#00B30C] flex items-center justify-center">
-            <CheckCircle className="w-8 h-8" />
-          </div>
+          <img src="/logo.png" alt="Medie Health" className="h-8 w-auto object-contain" />
           <button
             onClick={onClose}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
@@ -92,7 +90,7 @@ export function BookingSuccessModal({
         {/* Action Buttons */}
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <a
-            href={`https://wa.me/919876543210?text=${whatsappMessage}`}
+            href={`https://wa.me/8979118660?text=${whatsappMessage}`}
             target="_blank"
             rel="noreferrer"
             className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md shadow-emerald-600/20"

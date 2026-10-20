@@ -82,10 +82,10 @@ export function FaqSection() {
             </div>
           </div>
           <a
-            href="tel:+919876543210"
+            href="tel:+918979118660"
             className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-colors shrink-0"
           >
-            Call +91 98765 43210
+            Call +91 89791 18660
           </a>
         </div>
       </div>

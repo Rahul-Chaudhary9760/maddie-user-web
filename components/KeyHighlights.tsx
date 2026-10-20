@@ -67,10 +67,10 @@ export function KeyHighlights() {
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8FBE9] border border-[#00D40E]/30 text-emerald-800 text-xs font-black uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#00B30C]" />
-            The Maddie Health Standard
+            The Medie Health Standard
           </div>
           <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Why 50,000+ Patients Trust Maddie For Diagnostics
+            Why 50,000+ Patients Trust Medie For Diagnostics
           </h2>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
             We combine hospital-grade diagnostic accuracy with doorstep convenience, transparent pricing, and instant digital reports.

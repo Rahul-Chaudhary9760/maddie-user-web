@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Activity, ShieldCheck, Award, Heart, Phone, Mail, MapPin } from 'lucide-react';
+import { ShieldCheck, Award, Heart, Phone, Mail, MapPin } from 'lucide-react';
 
 export function Footer() {
   const scrollToForm = () => {
@@ -16,19 +16,15 @@ export function Footer() {
           {/* Col 1: Brand & Bio */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#00D40E] flex items-center justify-center text-black shadow-md shadow-[#00D40E]/20">
-                <Activity className="w-5 h-5" strokeWidth={2.5} />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-xl tracking-tight text-white">MADDIE</span>
-                <span className="text-[10px] font-bold text-black bg-[#00D40E] px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                  HEALTH
-                </span>
-              </div>
+              <img
+                src="/logo-white.png"
+                alt="Medie Health"
+                className="h-9 sm:h-10 w-auto object-contain"
+              />
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Maddie Health is India’s fast-growing doorstep diagnostic platform providing NABL-certified preventive health checkups, transparent pricing, and 12-hour digital reports on WhatsApp.
+              Medie Health is India’s fast-growing doorstep diagnostic platform providing NABL-certified preventive health checkups, transparent pricing, and 12-hour digital reports on WhatsApp.
             </p>
 
             {/* Accreditations */}
@@ -139,7 +135,7 @@ export function Footer() {
             * Disclaimer: All diagnostic pathology tests and health packages are performed by partner NABL / CAP accredited laboratories using standardized robotic analyzers. Reports are intended for preventive health screening purposes and not as a sole medical diagnosis. Please consult a registered medical doctor for treatment recommendations.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-900 text-slate-500">
-            <span>© 2026 Maddie Health Technologies Pvt. Ltd. All rights reserved.</span>
+            <span>© 2026 Medie Health Technologies Pvt. Ltd. All rights reserved.</span>
             <div className="flex items-center gap-4">
               <a href="#" className="hover:text-slate-300">Privacy Policy</a>
               <span>•</span>

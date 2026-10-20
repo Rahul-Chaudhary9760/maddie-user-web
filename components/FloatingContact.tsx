@@ -24,7 +24,7 @@ export function FloatingContact() {
   };
 
   const whatsappLink =
-    'https://api.whatsapp.com/send?phone=919876543210&text=Hello%20Maddie%20Health%2C%20I%20want%20to%20inquire%20about%20the%20Smart%20Full%20Body%20Health%20Checkup%20%40%20%E2%82%B9799.';
+    'https://api.whatsapp.com/send?phone=8979118660&text=Hello%20Medie%20Health%2C%20I%20want%20to%20inquire%20about%20the%20Smart%20Full%20Body%20Health%20Checkup%20%40%20%E2%82%B9799.';
 
   return (
     <>

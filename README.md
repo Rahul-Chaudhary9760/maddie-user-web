@@ -172,7 +172,7 @@ npm start -- -p 3002
 ```json
 {
   "name": "Amit Sharma",
-  "phone": "9876543210",
+  "phone": "9876543210",  
   "packageId": "smart-full-body",
   "packageName": "Smart Full Body Health Checkup",
   "price": 799,

@@ -283,7 +283,7 @@ export const TESTIMONIALS = [
     rating: 5,
     date: '1 week ago',
     text:
-      'The sample collection was completely painless. The free doctor consultation after the report was so helpful in explaining my vitamin and thyroid levels. Highly recommend Maddie Health!',
+      'The sample collection was completely painless. The free doctor consultation after the report was so helpful in explaining my vitamin and thyroid levels. Highly recommend Medie Health!',
     verified: true,
   },
   {
@@ -303,7 +303,7 @@ export const TESTIMONIALS = [
     rating: 5,
     date: '5 days ago',
     text:
-      'Getting HbA1c and full lipid profile done at home for just ₹799 without travelling to a crowded diagnostic center is a blessing for seniors. Thank you Maddie!',
+      'Getting HbA1c and full lipid profile done at home for just ₹799 without travelling to a crowded diagnostic center is a blessing for seniors. Thank you Medie!',
     verified: true,
   },
 ];
@@ -317,7 +317,7 @@ export const FAQS = [
   {
     q: 'How soon will I receive my digital test reports?',
     a:
-      'Smart Digital Reports are delivered within 12 to 15 hours directly on your WhatsApp and registered Email address. You can also view them anytime on the Maddie mobile app.',
+      'Smart Digital Reports are delivered within 12 to 15 hours directly on your WhatsApp and registered Email address. You can also view them anytime on the Medie mobile app.',
   },
   {
     q: 'How do I make the payment for the test?',

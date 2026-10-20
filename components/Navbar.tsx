@@ -2,16 +2,13 @@
 
 import React, { useState } from 'react';
 import {
-  Activity,
   Phone,
   ShieldCheck,
   CalendarCheck,
   Menu,
   X,
   Award,
-  Sparkles,
   ChevronRight,
-  MessageSquare,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -37,24 +34,13 @@ export function Navbar() {
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-18 flex items-center justify-between gap-2">
         {/* Brand Logo */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#00D40E] flex items-center justify-center shadow-md shadow-[#00D40E]/25 shrink-0">
-            <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-black" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900">
-                MADDIE
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-bold text-white bg-[#00D40E] px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                HEALTH
-              </span>
-            </div>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block -mt-1 hidden sm:block">
-              NABL & ISO Accredited Diagnostics
-            </span>
-          </div>
-        </div>
+        <a href="/" className="flex items-center shrink-0">
+          <img
+            src="/logo.png"
+            alt="Medie Health"
+            className="h-8 sm:h-9 w-auto object-contain"
+          />
+        </a>
 
         {/* Center Trust Badges (Desktop / Large Laptop) */}
         <div className="hidden xl:flex items-center gap-5 text-xs text-slate-600 font-semibold">
@@ -76,12 +62,12 @@ export function Navbar() {
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Call button: compact on mobile, full on tablet/desktop */}
           <a
-            href="tel:+919876543210"
+            href="tel:+918979118660"
             className="flex items-center gap-1.5 px-2.5 py-2 sm:px-3.5 sm:py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-colors"
           >
             <Phone className="w-3.5 h-3.5 text-[#00D40E] shrink-0" />
             <span className="hidden md:inline text-slate-500 font-normal">24x7:</span>
-            <span className="hidden sm:inline">+91 98765 43210</span>
+            <span className="hidden sm:inline">+91 89791 18660</span>
             <span className="sm:hidden text-[11px]">Call</span>
           </a>
 
@@ -114,6 +100,11 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="xl:hidden border-t border-slate-200 bg-white/98 backdrop-blur-md px-4 py-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
           <div className="space-y-4">
+            {/* Brand Logo in Drawer */}
+            <div className="pb-3 border-b border-slate-100">
+              <img src="/logo.png" alt="Medie Health" className="h-7 w-auto object-contain" />
+            </div>
+
             {/* Quick Navigation Links */}
             <div className="space-y-1">
               <button
@@ -158,7 +149,7 @@ export function Navbar() {
             {/* Action buttons inside mobile drawer */}
             <div className="pt-2 grid grid-cols-2 gap-2">
               <a
-                href="tel:+919876543210"
+                href="tel:+918979118660"
                 className="py-3 px-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Phone className="w-3.5 h-3.5 text-[#00D40E]" />
