@@ -25,35 +25,33 @@ export function UrgencyBar() {
   const format = (n: number) => String(n).padStart(2, '0');
 
   return (
-    <div className="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#00D40E] animate-ping" />
-          <span className="font-medium text-slate-200">
-            Special Promo:{' '}
+    <div className="bg-slate-900 text-white text-xs py-2 px-3 sm:px-4 border-b border-slate-800">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+        {/* Left Announcement */}
+        <div className="flex items-center gap-2 overflow-hidden">
+          <span className="w-2 h-2 rounded-full bg-[#00D40E] shrink-0 animate-ping" />
+          <p className="text-[11px] sm:text-xs text-slate-200 truncate">
+            <span className="hidden sm:inline">Special Promo:{' '}</span>
             <strong className="text-white font-extrabold underline decoration-[#00D40E] decoration-2">
               Free HbA1c Sugar Test & Iron Profile
             </strong>{' '}
-            included with Smart Full Body Checkup!
-          </span>
+            <span className="hidden md:inline">(worth ₹699) with Full Body Checkup!</span>
+          </p>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
-          <Clock className="w-3.5 h-3.5 text-[#00D40E]" />
-          <span className="text-[11px] text-slate-300 font-semibold uppercase tracking-wider">
-            Offer Ends in:
+        {/* Right Countdown Timer */}
+        <div className="flex items-center gap-1.5 shrink-0 bg-slate-800/90 px-2.5 py-1 rounded-full border border-slate-700/80">
+          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#00D40E]" />
+          <span className="text-[10px] sm:text-[11px] text-slate-300 font-semibold uppercase tracking-wider hidden sm:inline">
+            Ends in:
           </span>
-          <span className="font-mono font-bold text-white bg-slate-900 px-1.5 py-0.5 rounded text-[11px]">
-            {format(timeLeft.hours)}h
-          </span>
-          :
-          <span className="font-mono font-bold text-white bg-slate-900 px-1.5 py-0.5 rounded text-[11px]">
-            {format(timeLeft.minutes)}m
-          </span>
-          :
-          <span className="font-mono font-bold text-[#00D40E] bg-slate-900 px-1.5 py-0.5 rounded text-[11px]">
-            {format(timeLeft.seconds)}s
-          </span>
+          <div className="flex items-center font-mono font-bold text-[10px] sm:text-[11px] text-white space-x-1">
+            <span className="bg-slate-950 px-1 py-0.5 rounded">{format(timeLeft.hours)}h</span>
+            <span>:</span>
+            <span className="bg-slate-950 px-1 py-0.5 rounded">{format(timeLeft.minutes)}m</span>
+            <span>:</span>
+            <span className="bg-slate-950 px-1 py-0.5 rounded text-[#00D40E]">{format(timeLeft.seconds)}s</span>
+          </div>
         </div>
       </div>
     </div>
