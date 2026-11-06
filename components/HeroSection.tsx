@@ -75,13 +75,14 @@ export function HeroSection({ onBookingSuccess, selectedPackage }: HeroSectionPr
             {/* Main Headline */}
             <div>
               <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
-                Smart Full Body Health Checkup with{' '}
+                {selectedPackage?.name || 'Smart Full Body Health Checkup'} with{' '}
                 <span className="text-[#00B30C] underline decoration-[#00D40E] decoration-4">
-                  84+ Vital Tests
+                  {selectedPackage?.testsCount ? `${selectedPackage.testsCount}+ Vital Tests` : '80+ Vital Tests'}
                 </span>
               </h1>
               <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
-                Comprehensive preventive screening covering Heart, Diabetes, Liver, Kidney, Thyroid & Blood counts. Free doorstep blood collection by certified phlebotomists.
+                {selectedPackage?.description ||
+                  'Comprehensive preventive screening covering Heart, Diabetes, Liver, Kidney, Thyroid & Blood counts. Free doorstep blood collection by certified phlebotomists.'}
               </p>
             </div>
 
@@ -90,14 +91,24 @@ export function HeroSection({ onBookingSuccess, selectedPackage }: HeroSectionPr
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-[#00D40E] text-black font-extrabold text-[10px] uppercase tracking-wider">
-                    60% DISCOUNT TODAY
+                    {selectedPackage?.badge || 'SPECIAL DISCOUNT TODAY'}
                   </span>
                   <span className="text-xs text-slate-400">Special Promo</span>
                 </div>
                 <div className="flex items-baseline gap-3 mt-2">
-                  <span className="text-3xl sm:text-4xl font-black text-[#00D40E]">₹799</span>
-                  <span className="text-lg text-slate-400 line-through font-semibold">₹1,999</span>
-                  <span className="text-xs text-emerald-400 font-bold">(Save ₹1,200)</span>
+                  <span className="text-3xl sm:text-4xl font-black text-[#00D40E]">
+                    ₹{selectedPackage?.discountedPrice || 799}
+                  </span>
+                  {selectedPackage?.originalPrice && (
+                    <span className="text-lg text-slate-400 line-through font-semibold">
+                      ₹{selectedPackage.originalPrice}
+                    </span>
+                  )}
+                  {selectedPackage?.originalPrice && selectedPackage?.discountedPrice && (
+                    <span className="text-xs text-emerald-400 font-bold">
+                      (Save ₹{selectedPackage.originalPrice - selectedPackage.discountedPrice})
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-slate-300 mt-1 flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-[#00D40E]" />

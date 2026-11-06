@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { CheckCircle, X, Calendar, Clock, MapPin, Phone, MessageSquare } from 'lucide-react';
 
 interface BookingSuccessModalProps {
@@ -79,6 +80,25 @@ export function BookingSuccessModal({
             </span>
           </div>
 
+          {bookingData.address && (
+            <div className="flex justify-between items-start">
+              <span className="text-slate-500 shrink-0">Address:</span>
+              <span className="font-semibold text-slate-800 text-right ml-3 text-[11px] leading-tight">
+                {typeof bookingData.address === 'string'
+                  ? bookingData.address
+                  : [
+                      bookingData.address.street,
+                      bookingData.address.landmark,
+                      bookingData.address.city,
+                      bookingData.address.state,
+                      bookingData.address.pincode,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between items-center pt-2 border-t border-slate-200/80">
             <span className="text-slate-500 font-bold">Total Amount to Pay @ Home:</span>
             <span className="font-black text-slate-900 text-base">
@@ -88,20 +108,29 @@ export function BookingSuccessModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row gap-2.5">
+          <Link
+            href="/my-bookings"
+            onClick={onClose}
+            className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-xs text-center"
+          >
+            <Calendar className="w-4 h-4 text-[#00D40E]" />
+            <span>View My Bookings</span>
+          </Link>
+
           <a
             href={`https://wa.me/8979118660?text=${whatsappMessage}`}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md shadow-emerald-600/20"
+            className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md shadow-emerald-600/20 text-center"
           >
             <MessageSquare className="w-4 h-4" />
-            Track on WhatsApp
+            <span>Track on WhatsApp</span>
           </a>
 
           <button
             onClick={onClose}
-            className="py-3 px-5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors"
+            className="py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors"
           >
             Close
           </button>
