@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { HEALTH_PACKAGES, HealthPackage } from '@/lib/data';
+import React, { useState, useEffect } from 'react';
+import { HealthPackage } from '@/lib/data';
+import { useTests } from '@/hooks/useTests';
 import { UrgencyBar } from '@/components/UrgencyBar';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -16,10 +17,24 @@ import { FloatingContact } from '@/components/FloatingContact';
 import { BookingSuccessModal } from '@/components/BookingSuccessModal';
 
 export default function LandingPage() {
-  const [selectedPackage, setSelectedPackage] = useState<HealthPackage>(
-    HEALTH_PACKAGES[0]
+  const { tests } = useTests();
+  const [selectedPackage, setSelectedPackage] = useState<HealthPackage | undefined>(
+    undefined
   );
   const [bookingSuccessData, setBookingSuccessData] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (tests.length > 0 && !selectedPackage) {
+      const fullBody =
+        tests.find(
+          (t) =>
+            t.id === 'full-body-smart' ||
+            t.id === 'smart-full-body' ||
+            t.category === 'Full Body'
+        ) || tests[0];
+      if (fullBody) setSelectedPackage(fullBody);
+    }
+  }, [tests, selectedPackage]);
 
   const handleSelectPackage = (pkg: HealthPackage) => {
     setSelectedPackage(pkg);
@@ -50,7 +65,10 @@ export default function LandingPage() {
 
         {/* 5. 84+ Parameter Breakdown Accordion (Redcliffe-style test details) */}
         <PackageDetailsAccordion
-          onBookNowClick={() => handleSelectPackage(HEALTH_PACKAGES[0])}
+          onBookNowClick={() => {
+            const target = selectedPackage || tests[0];
+            if (target) handleSelectPackage(target);
+          }}
         />
 
         {/* 6. Popular Health Packages Carousel / Grid */}

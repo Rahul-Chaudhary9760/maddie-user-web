@@ -2,9 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { MessageSquare, Phone, ArrowUp, Calendar } from 'lucide-react';
+import { useTests } from '@/hooks/useTests';
 
 export function FloatingContact() {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const { tests } = useTests();
+  const mainPkg =
+    tests.find(
+      (t) =>
+        t.id === 'full-body-smart' ||
+        t.id === 'smart-full-body' ||
+        t.category === 'Full Body'
+    ) || tests[0];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,11 +67,17 @@ export function FloatingContact() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3">
         <div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-black text-[#00B30C]">₹799</span>
-            <span className="text-xs text-slate-400 line-through">₹1,999</span>
+            <span className="text-xl font-black text-[#00B30C]">
+              ₹{mainPkg?.discountedPrice || 799}
+            </span>
+            {mainPkg?.originalPrice && (
+              <span className="text-xs text-slate-400 line-through">
+                ₹{mainPkg.originalPrice}
+              </span>
+            )}
           </div>
-          <span className="text-[10px] font-bold text-slate-600 block -mt-0.5">
-            Smart Full Body (84 Tests)
+          <span className="text-[10px] font-bold text-slate-600 block -mt-0.5 truncate max-w-[200px]">
+            {mainPkg?.name || 'Smart Full Body'} ({mainPkg?.testsCount || 80}+ Tests)
           </span>
         </div>
 

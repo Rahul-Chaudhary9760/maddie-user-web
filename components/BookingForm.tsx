@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { HEALTH_PACKAGES, HealthPackage } from '@/lib/data';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { HealthPackage } from '@/lib/data';
+import { useAuth } from '@/context/AuthContext';
+import { useTests } from '@/hooks/useTests';
+import { api, ApiError } from '@/lib/api';
+import { UserBooking, ApiResponse } from '@/types/auth';
 import {
   Calendar,
   Clock,
@@ -13,6 +19,7 @@ import {
   AlertCircle,
   Star,
   Sparkles,
+  LogIn,
 } from 'lucide-react';
 
 interface BookingFormProps {
@@ -21,14 +28,26 @@ interface BookingFormProps {
 }
 
 export function BookingForm({
-  selectedPackage = HEALTH_PACKAGES[0],
+  selectedPackage,
   onSuccess,
 }: BookingFormProps) {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+  const { tests: backendTests, isLoading: testsLoading } = useTests();
+  const packageList = backendTests;
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [patientAge, setPatientAge] = useState('28');
+  const [patientGender, setPatientGender] = useState<'male' | 'female' | 'other'>('male');
+  const [street, setStreet] = useState('');
   const [city, setCity] = useState('Delhi NCR');
+  const [state, setState] = useState('Delhi');
   const [pincode, setPincode] = useState('110001');
-  const [selectedPkgId, setSelectedPkgId] = useState(selectedPackage.id);
+  const [landmark, setLandmark] = useState('');
+  const [selectedPkgId, setSelectedPkgId] = useState<string>(
+    selectedPackage?.id || ''
+  );
   const [appointmentDate, setAppointmentDate] = useState('');
 
   useEffect(() => {
@@ -37,61 +56,144 @@ export function BookingForm({
     setAppointmentDate(tomorrow.toISOString().split('T')[0]);
   }, []);
   const [timeSlot, setTimeSlot] = useState('07:00-08:00');
-  const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [whatsappConsent, setWhatsappConsent] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Pre-fill user details if logged in
+  useEffect(() => {
+    if (user) {
+      if (user.name && !name) setName(user.name);
+      if (user.phone && !phone) setPhone(user.phone);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (selectedPackage?.id) {
       setSelectedPkgId(selectedPackage.id);
+    } else if (packageList.length > 0 && !selectedPkgId) {
+      setSelectedPkgId(packageList[0].id);
     }
-  }, [selectedPackage]);
+  }, [selectedPackage, packageList, selectedPkgId]);
 
   const currentPkg =
-    HEALTH_PACKAGES.find((p) => p.id === selectedPkgId) || selectedPackage;
+    packageList.find((p) => p.id === selectedPkgId) ||
+    selectedPackage ||
+    packageList[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if user is authenticated before allowing booking
+    if (!isAuthenticated) {
+      setError('Please sign in or create an account to book your test.');
+      router.push('/login?redirect=/#booking-form');
+      return;
+    }
+
     if (!name.trim()) {
-      setError('Please enter your full name.');
+      setError('Please enter patient full name.');
       return;
     }
     if (!phone.trim() || phone.trim().length < 10) {
       setError('Please enter a valid 10-digit mobile number.');
       return;
     }
+    if (!street.trim() || street.trim().length < 3) {
+      setError('Please enter your street address (minimum 3 characters).');
+      return;
+    }
+    if (!city.trim() || city.trim().length < 2) {
+      setError('Please enter your city.');
+      return;
+    }
+    if (!state.trim()) {
+      setError('Please enter your state.');
+      return;
+    }
+    if (!pincode.trim() || pincode.trim().length < 6) {
+      setError('Please enter a valid 6-digit pincode.');
+      return;
+    }
+
+    if (!currentPkg) {
+      setError('Please select a health package to proceed.');
+      return;
+    }
+
+    // Determine target 24-character ObjectId testId
+    const matchingBackendTest = backendTests.find(
+      (t) =>
+        (t._id && /^[0-9a-fA-F]{24}$/.test(t._id)) &&
+        (t.slug === currentPkg.id ||
+         t.id === currentPkg.id ||
+         t.name.toLowerCase() === currentPkg.name.toLowerCase())
+    ) || backendTests.find((t) => t._id && /^[0-9a-fA-F]{24}$/.test(t._id));
+
+    const currentPkgId =
+      '_id' in currentPkg && typeof currentPkg._id === 'string'
+        ? currentPkg._id
+        : currentPkg.id;
+
+    const testId =
+      /^[0-9a-fA-F]{24}$/.test(currentPkgId)
+        ? currentPkgId
+        : matchingBackendTest?._id;
+
+    if (!testId) {
+      setError('Selected test is currently unavailable. Please choose another package.');
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          phone: phone.trim(),
-          city: city.trim(),
+      const bookingPayload = {
+        testId,
+        patientName: name.trim(),
+        patientPhone: phone.trim(),
+        patientAge: Math.max(1, Math.min(120, parseInt(patientAge, 10) || 28)),
+        patientGender,
+        address: {
+          street: street.trim(),
+          city: city.trim() || 'Delhi NCR',
+          state: state.trim() || 'Delhi',
           pincode: pincode.trim(),
-          packageId: currentPkg.id,
-          packageName: currentPkg.name,
-          price: currentPkg.discountedPrice,
-          appointmentDate,
-          timeSlot,
-          address: address.trim(),
-          notes: notes.trim(),
-        }),
-      });
+          landmark: landmark.trim() || '',
+        },
+        appointmentDate,
+        timeSlot,
+        notes: notes.trim() || '',
+      };
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to submit booking.');
+      // Call backend POST /api/v1/bookings
+      const res = await api.post<ApiResponse<UserBooking>>('/bookings', bookingPayload);
+
+      const booking = res.data;
+      const modalData = {
+        ...booking,
+        bookingRef: booking?._id
+          ? `MD-${booking._id.slice(-6).toUpperCase()}`
+          : `MD-${Date.now().toString().slice(-6)}`,
+        packageName: currentPkg.name,
+        totalAmount: booking?.totalAmount || currentPkg.discountedPrice,
+        patientName: booking?.patientName || name.trim(),
+        patientPhone: booking?.patientPhone || phone.trim(),
+        appointmentDate: booking?.appointmentDate || appointmentDate,
+        timeSlot: booking?.timeSlot || timeSlot,
+      };
+
+      onSuccess(modalData);
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to book home sample collection. Please try again.');
       }
-
-      onSuccess(data.data);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please call helpline.');
     } finally {
       setIsSubmitting(false);
     }
@@ -138,6 +240,42 @@ export function BookingForm({
         </div>
       )}
 
+      {/* Auth Status Notification */}
+      {isAuthenticated && user ? (
+        <div className="mt-4 flex items-center justify-between p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+          <div className="flex items-center gap-2 truncate">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="truncate">
+              Booking as <strong>{user.name}</strong> ({user.email})
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2.5">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span className="font-semibold">Sign in or register required before booking</span>
+          </div>
+          <p className="text-[11px] text-amber-700 leading-relaxed">
+            You can freely explore tests & packages, but an account is needed to confirm doorstep collection slots.
+          </p>
+          <div className="flex items-center gap-2 pt-0.5">
+            <Link
+              href="/login?redirect=/#booking-form"
+              className="flex-1 py-2 px-3 rounded-xl bg-white border border-amber-300 font-bold text-amber-900 hover:bg-amber-100 transition-colors text-center"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/register?redirect=/#booking-form"
+              className="flex-1 py-2 px-3 rounded-xl bg-[#00D40E] hover:bg-[#00B30C] font-bold text-slate-950 transition-colors text-center shadow-xs"
+            >
+              Register
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Form Fields */}
       <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
         {/* Name Field */}
@@ -179,6 +317,39 @@ export function BookingForm({
           </div>
         </div>
 
+        {/* Patient Age & Gender Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+              Patient Age *
+            </label>
+            <input
+              type="number"
+              required
+              min={1}
+              max={120}
+              value={patientAge}
+              onChange={(e) => setPatientAge(e.target.value)}
+              placeholder="e.g. 28"
+              className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+              Gender *
+            </label>
+            <select
+              value={patientGender}
+              onChange={(e) => setPatientGender(e.target.value as 'male' | 'female' | 'other')}
+              className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none bg-white"
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
         {/* Package Selector */}
         <div>
           <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
@@ -189,43 +360,18 @@ export function BookingForm({
             onChange={(e) => setSelectedPkgId(e.target.value)}
             className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-bold text-xs focus:outline-none bg-white transition-colors"
           >
-            {HEALTH_PACKAGES.map((pkg) => (
-              <option key={pkg.id} value={pkg.id}>
-                {pkg.name} ({pkg.testsCount} Tests) — ₹{pkg.discountedPrice}
+            {packageList.length > 0 ? (
+              packageList.map((pkg) => (
+                <option key={pkg.id} value={pkg.id}>
+                  {pkg.name} ({pkg.testsCount} Tests) — ₹{pkg.discountedPrice}
+                </option>
+              ))
+            ) : (
+              <option value="">
+                {testsLoading ? 'Loading tests from lab catalog...' : 'No tests available'}
               </option>
-            ))}
+            )}
           </select>
-        </div>
-
-        {/* City & Pincode Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
-              City *
-            </label>
-            <input
-              type="text"
-              required
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="e.g. Delhi NCR"
-              className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
-              Pincode *
-            </label>
-            <input
-              type="text"
-              required
-              maxLength={6}
-              value={pincode}
-              onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-              placeholder="e.g. 110001"
-              className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none"
-            />
-          </div>
         </div>
 
         {/* Date & Time Slot Grid */}
@@ -267,20 +413,89 @@ export function BookingForm({
           </div>
         </div>
 
-        {/* Doorstep Address */}
-        <div>
-          <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
-            Doorstep Pickup Address & Landmark (Optional)
-          </label>
-          <div className="relative">
-            <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <textarea
-              rows={2}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="House/Flat No., Building Name, Street & Landmark"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none resize-none"
-            />
+        {/* Doorstep Pickup Address Section */}
+        <div className="pt-2 border-t border-slate-100 space-y-3">
+          <div className="flex items-center gap-1.5 text-slate-800 font-bold text-[11px] uppercase tracking-wider">
+            <MapPin className="w-3.5 h-3.5 text-[#00D40E]" />
+            <span>Doorstep Sample Collection Address</span>
+          </div>
+
+          {/* 1. Street */}
+          <div>
+            <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+              Street *
+            </label>
+            <div className="relative">
+              <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                required
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                placeholder="House/Flat No., Building Name, Street & Area"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* 2. City & 3. State Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+                City *
+              </label>
+              <input
+                type="text"
+                required
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="e.g. Delhi NCR"
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+                State *
+              </label>
+              <input
+                type="text"
+                required
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                placeholder="e.g. Delhi"
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* 4. Pincode & 5. Landmark Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+                Pincode *
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={6}
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                placeholder="e.g. 110001"
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+                Landmark
+              </label>
+              <input
+                type="text"
+                value={landmark}
+                onChange={(e) => setLandmark(e.target.value)}
+                placeholder="e.g. Near Metro Station"
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:border-[#00D40E] text-slate-900 font-medium text-xs focus:outline-none transition-colors"
+              />
+            </div>
           </div>
         </div>
 
@@ -301,8 +516,8 @@ export function BookingForm({
         {/* Live Price Summary Box */}
         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-600 font-semibold">{currentPkg.name}</span>
-            <span className="text-slate-400 line-through">₹{currentPkg.originalPrice}</span>
+            <span className="text-slate-600 font-semibold">{currentPkg?.name || 'Selected Test'}</span>
+            <span className="text-slate-400 line-through">₹{currentPkg?.originalPrice || 0}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-emerald-700 font-bold">Doorstep Sample Collection:</span>
@@ -315,26 +530,36 @@ export function BookingForm({
           <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
             <span className="font-bold text-slate-900 text-sm">Total Payable:</span>
             <span className="font-black text-xl text-[#00B30C]">
-              ₹{currentPkg.discountedPrice}
+              ₹{currentPkg?.discountedPrice || 0}
             </span>
           </div>
         </div>
 
         {/* Primary Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-4 px-6 rounded-2xl bg-[#00D40E] hover:bg-[#00B30C] text-black font-black text-sm uppercase tracking-wide transition-all shadow-xl shadow-[#00D40E]/25 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
-        >
-          {isSubmitting ? (
-            <div className="w-5 h-5 rounded-full border-2 border-black border-t-transparent animate-spin" />
-          ) : (
-            <>
-              <CheckCircle2 className="w-5 h-5" />
-              Book Home Collection (Pay Later)
-            </>
-          )}
-        </button>
+        {!isAuthenticated ? (
+          <button
+            type="submit"
+            className="w-full py-4 px-6 rounded-2xl bg-[#00D40E] hover:bg-[#00B30C] text-black font-black text-sm uppercase tracking-wide transition-all shadow-xl shadow-[#00D40E]/25 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <LogIn className="w-5 h-5" />
+            Sign In to Book Appointment
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-4 px-6 rounded-2xl bg-[#00D40E] hover:bg-[#00B30C] text-black font-black text-sm uppercase tracking-wide transition-all shadow-xl shadow-[#00D40E]/25 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {isSubmitting ? (
+              <div className="w-5 h-5 rounded-full border-2 border-black border-t-transparent animate-spin" />
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Book Home Collection (Pay Later)
+              </>
+            )}
+          </button>
+        )}
 
         {/* Trust Badges bottom */}
         <div className="text-center text-[11px] text-slate-500 font-semibold flex items-center justify-center gap-2">

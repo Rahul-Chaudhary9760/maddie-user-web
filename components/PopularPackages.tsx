@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { HEALTH_PACKAGES, HealthPackage } from '@/lib/data';
+import { HealthPackage } from '@/lib/data';
+import { useTests } from '@/hooks/useTests';
 import {
   Check,
   Clock,
@@ -16,8 +17,12 @@ interface PopularPackagesProps {
 }
 
 export function PopularPackages({ onSelectPackage }: PopularPackagesProps) {
+  const { tests, isLoading } = useTests();
+
   // Display other packages (excluding the flagship full body which is the hero)
-  const otherPackages = HEALTH_PACKAGES.filter((p) => p.id !== 'smart-full-body');
+  const otherPackages = tests.filter(
+    (p) => p.id !== 'smart-full-body' && p.id !== 'full-body-smart'
+  );
 
   const handleSelect = (pkg: HealthPackage) => {
     onSelectPackage(pkg);
@@ -26,6 +31,28 @@ export function PopularPackages({ onSelectPackage }: PopularPackagesProps) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  if (isLoading) {
+    return (
+      <section id="other-packages" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="h-6 w-48 bg-slate-200 rounded-full mx-auto animate-pulse mb-3" />
+            <div className="h-8 w-96 bg-slate-200 rounded-xl mx-auto animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-white rounded-3xl p-7 h-96 animate-pulse border border-slate-200" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (otherPackages.length === 0) {
+    return null;
+  }
 
   return (
     <section id="other-packages" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200/80">

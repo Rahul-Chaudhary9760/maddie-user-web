@@ -109,11 +109,11 @@ export function Footer() {
             <div className="space-y-2.5 text-xs">
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#00D40E] shrink-0" />
-                <span>+91 98765 43210 (Toll Free Helpline)</span>
+                <span>+91 8979118660 (Toll Free Helpline)</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#00D40E] shrink-0" />
-                <span>care@maddiehealth.com</span>
+                <span>support@medie.in</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#00D40E] shrink-0 mt-0.5" />

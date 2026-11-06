@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
+import { TestProvider } from '@/context/TestContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -9,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://mediehealth.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://medie.in'),
   title: 'Medie Health — Smart Full Body Checkup @ ₹799 | 80+ Tests with Free Home Collection',
   description:
     'Book Smart Full Body Checkup online with Free Home Sample Collection. 80+ vital health tests including HbA1c, Thyroid, Lipid, Liver & Kidney profiles. 100% NABL Accredited Lab Reports in 12 hours.',
@@ -49,7 +51,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-white text-[#0F172A] antialiased">
-        {children}
+        <AuthProvider>
+          <TestProvider>{children}</TestProvider>
+        </AuthProvider>
       </body>
     </html>
   );

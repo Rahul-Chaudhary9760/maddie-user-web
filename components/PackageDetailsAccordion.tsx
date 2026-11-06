@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { SMART_FULL_BODY_DETAILS, PackageCategoryDetail } from '@/lib/data';
+import { useTests } from '@/hooks/useTests';
+import { PackageCategoryDetail } from '@/lib/data';
 import {
   ChevronDown,
   ChevronUp,
@@ -20,6 +21,33 @@ interface PackageDetailsAccordionProps {
 }
 
 export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccordionProps) {
+  const { tests, isLoading } = useTests();
+
+  // Find the flagship or full-body test package from backend
+  const flagshipTest = useMemo(() => {
+    return (
+      tests.find(
+        (t) =>
+          t.id === 'full-body-smart' ||
+          t.id === 'smart-full-body' ||
+          t.category === 'Full Body'
+      ) || tests[0]
+    );
+  }, [tests]);
+
+  // Extract categories dynamically from the backend test details
+  const categories: PackageCategoryDetail[] = useMemo(() => {
+    if (flagshipTest && Array.isArray(flagshipTest.details) && flagshipTest.details.length > 0) {
+      return flagshipTest.details.map((d) => ({
+        title: d.title,
+        testsCount: d.testsCount || (d.items ? d.items.length : 0),
+        icon: d.icon || '🩺',
+        items: d.items || [],
+      }));
+    }
+    return [];
+  }, [flagshipTest]);
+
   // Active selected category for laptop/desktop Master-Detail view
   const [activeTabIdx, setActiveTabIdx] = useState<number>(0);
 
@@ -30,8 +58,9 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
   const [searchQuery, setSearchQuery] = useState('');
 
   const totalTests = useMemo(() => {
-    return SMART_FULL_BODY_DETAILS.reduce((sum, cat) => sum + cat.testsCount, 0);
-  }, []);
+    if (flagshipTest?.testsCount) return flagshipTest.testsCount;
+    return categories.reduce((sum, cat) => sum + (cat.testsCount || cat.items.length), 0);
+  }, [flagshipTest, categories]);
 
   const handleBookNow = () => {
     if (onBookNowClick) {
@@ -46,37 +75,62 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) {
       return {
-        categories: SMART_FULL_BODY_DETAILS,
+        categories,
         totalMatches: totalTests,
       };
     }
     const q = searchQuery.toLowerCase();
-    const filtered = SMART_FULL_BODY_DETAILS.map((cat) => {
-      const matches = cat.items.filter((item) => item.toLowerCase().includes(q));
-      const titleMatches = cat.title.toLowerCase().includes(q);
-      return {
-        ...cat,
-        items: titleMatches && matches.length === 0 ? cat.items : matches,
-        hasMatch: titleMatches || matches.length > 0,
-      };
-    }).filter((cat) => cat.hasMatch);
+    const filtered = categories
+      .map((cat) => {
+        const matches = cat.items.filter((item) => item.toLowerCase().includes(q));
+        const titleMatches = cat.title.toLowerCase().includes(q);
+        return {
+          ...cat,
+          items: titleMatches && matches.length === 0 ? cat.items : matches,
+          hasMatch: titleMatches || matches.length > 0,
+        };
+      })
+      .filter((cat) => cat.hasMatch);
 
     const totalMatches = filtered.reduce((sum, cat) => sum + cat.items.length, 0);
     return { categories: filtered, totalMatches };
-  }, [searchQuery, totalTests]);
+  }, [searchQuery, categories, totalTests]);
 
   // Current category for Desktop Master-Detail view
-  const currentDesktopCategory: PackageCategoryDetail = useMemo(() => {
+  const currentDesktopCategory: PackageCategoryDetail | undefined = useMemo(() => {
     if (searchResults.categories.length === 0) {
-      return SMART_FULL_BODY_DETAILS[0];
+      return categories[0];
     }
     return searchResults.categories[activeTabIdx] || searchResults.categories[0];
-  }, [searchResults, activeTabIdx]);
+  }, [searchResults, activeTabIdx, categories]);
 
   // Toggle for mobile accordion (strict single-expand: only 1 open at a time)
   const handleMobileToggle = (idx: number) => {
     setMobileOpenIdx((prev) => (prev === idx ? null : idx));
   };
+
+  if (isLoading) {
+    return (
+      <section id="package-details" className="py-14 sm:py-20 bg-white border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="h-8 w-64 bg-slate-100 rounded-xl animate-pulse mb-4" />
+          <div className="h-4 w-96 bg-slate-100 rounded-lg animate-pulse mb-8" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-5 space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+            <div className="lg:col-span-7 h-96 bg-slate-100 rounded-3xl animate-pulse" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (categories.length === 0) {
+    return null;
+  }
 
   return (
     <section id="package-details" className="py-14 sm:py-20 bg-white border-b border-slate-200/80">
@@ -158,7 +212,7 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
 
             {searchResults.categories.map((category, idx) => {
               const isActive =
-                currentDesktopCategory.title === category.title;
+                currentDesktopCategory?.title === category.title;
 
               return (
                 <button
@@ -205,7 +259,8 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
 
           {/* Right Showcase: Detailed Parameters of Selected Category */}
           <div className="lg:col-span-7 xl:col-span-8">
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-md">
+            {currentDesktopCategory && (
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-md">
               {/* Active Profile Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
                 <div className="flex items-center gap-3.5">
@@ -229,7 +284,7 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
                   onClick={handleBookNow}
                   className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#00D40E] text-white hover:text-black font-extrabold text-xs transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>Book @ ₹799</span>
+                  <span>Book @ ₹{flagshipTest?.discountedPrice || 799}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -260,10 +315,11 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
                   <span>Dual-Run verification on automated clinical analyzers</span>
                 </div>
                 <span className="font-semibold text-slate-700 hidden sm:inline">
-                  Reports in 12 Hours
+                  Reports in {flagshipTest?.reportTime || '12-15 Hours'}
                 </span>
               </div>
             </div>
+            )}
           </div>
         </div>
 
@@ -330,7 +386,7 @@ export function PackageDetailsAccordion({ onBookNowClick }: PackageDetailsAccord
                       onClick={handleBookNow}
                       className="mt-4 w-full py-2.5 rounded-xl bg-[#00D40E] text-black font-extrabold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                     >
-                      <span>Book Smart Full Body @ ₹799</span>
+                      <span>Book {flagshipTest?.name || 'Smart Full Body'} @ ₹{flagshipTest?.discountedPrice || 799}</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
