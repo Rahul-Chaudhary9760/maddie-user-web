@@ -53,7 +53,7 @@ function MyBookingsContent() {
   useEffect(() => {
     if (!authLoading) {
       if (!isAuthenticated) {
-        router.replace('/login?redirect=/my-bookings');
+        router.replace('/login?redirect=/');
       } else {
         fetchBookings();
       }
